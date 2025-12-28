@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service OCR - PaddleOCR</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .upload-section {
+            border: 2px dashed #ddd;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+        .upload-section:hover {
+            border-color: #3498db;
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .result-section {
+            margin-top: 30px;
+        }
+        .result-item {
+            border: 1px solid #eee;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .text-content {
+            white-space: pre-wrap;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .image-content img {
+            max-width: 100%;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .flash-messages {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Service OCR avec PaddleOCR</h1>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="upload-section">
+            <form method="post" enctype="multipart/form-data">
+                <div style="margin-bottom: 20px;">
+                    <input type="file" name="file" id="file" accept=".png,.jpg,.jpeg,.bmp,.pdf" required style="display: none;">
+                    <label for="file" class="btn" style="background-color: #95a5a6; display: inline-block; margin-bottom: 10px;">
+                        📁 Choisir un fichier
+                    </label>
+                    <div id="file-name" style="margin-top: 10px; color: #666;">Aucun fichier choisi</div>
+                </div>
+                <button type="submit" class="btn">Lancer l'analyse OCR</button>
+            </form>
+        </div>
+
+        {% if results %}
+        <div class="result-section">
+            <h2>Résultats de l'analyse</h2>
+            {% for result in results %}
+                <div class="result-item">
+                    <h3>{{ result.filename }}</h3>
+                    {% if result.success %}
+                        <div class="result-grid">
+                            <div class="image-content">
+                                <h4>Image annotée</h4>
+                                <img src="{{ url_for('uploaded_file', filename=result.annotated_image) }}" alt="Image annotée">
+                            </div>
+                            <div class="text-content-wrapper">
+                                <h4>Texte extrait</h4>
+                                <div class="text-content">{{ result.text }}</div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="error">
+                            <p>⚠️ {{ result.error }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById('file').addEventListener('change', function(e) {
+            var fileName = e.target.files[0] ? e.target.files[0].name : 'Aucun fichier choisi';
+            document.getElementById('file-name').textContent = fileName;
+        });
+    </script>
+</body>
+</html>
+
