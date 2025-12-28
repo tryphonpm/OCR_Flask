@@ -6,8 +6,14 @@ app = Flask(__name__)
 app.secret_key = 'super_secret_key_change_me' # Nécessaire pour flash messages
 
 # Configuration
-UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
-RESULTS_FOLDER = os.path.join(os.getcwd(), 'static', 'results')
+if os.environ.get('VERCEL'):
+    # Sur Vercel, utiliser /tmp pour le stockage temporaire
+    UPLOAD_FOLDER = os.path.join('/tmp', 'uploads')
+    RESULTS_FOLDER = os.path.join('/tmp', 'results')
+else:
+    UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
+    RESULTS_FOLDER = os.path.join(os.getcwd(), 'static', 'results')
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp', 'pdf'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -56,6 +62,9 @@ def index():
 @app.route('/results/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['RESULTS_FOLDER'], filename)
+
+# Vercel requires app to be available as 'app' variable
+app = app
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

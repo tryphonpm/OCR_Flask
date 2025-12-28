@@ -1,7 +1,15 @@
+import os
+import sys
+
+# Configuration spécifique pour Vercel / Environnement Serverless
+# Si on est sur Vercel, le seul dossier inscriptible est /tmp
+if os.environ.get('VERCEL') or not os.access(os.path.expanduser('~'), os.W_OK):
+    os.environ['HOME'] = '/tmp'
+    os.environ['XDG_CACHE_HOME'] = '/tmp/.cache'
+
 from paddleocr import PaddleOCR
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
-import os
 import pypdfium2 as pdfium
 
 # Initialisation du modèle (une seule fois)
@@ -16,11 +24,14 @@ def draw_ocr_results(image, boxes, txts, scores, font_path='arial.ttf'):
     try:
         font = ImageFont.truetype(font_path, 20)
     except IOError:
-        # Fallback fonts pour Windows
+        # Fallback fonts
         possible_fonts = [
+            # Windows
             r'C:\Windows\Fonts\arial.ttf',
             r'C:\Windows\Fonts\calibri.ttf',
-            r'C:\Windows\Fonts\segoeui.ttf'
+            # Linux / Vercel
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+            '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'
         ]
         font = ImageFont.load_default()
         for f in possible_fonts:
